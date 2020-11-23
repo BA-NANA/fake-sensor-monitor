@@ -4,20 +4,22 @@ import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+/**
+ * 线程 每分钟计算平均温度与自动报警检测
+ * @author https://github.com/BA-NANA
+ */
 public class MinsRunnable implements Runnable{
 
     private Connection conn;
 
-    private String sql = "SELECT AVG(a.sample_data) AS avg , COUNT(DISTINCT b.sample_time) AS num\n" +
-            "FROM \n" +
-            "sample a,\n" +
-            "sample b\n" +
-            "WHERE \n" +
-            "DATE_SUB(NOW(),INTERVAL 1 MINUTE) < a.sample_time \n" +
-            "AND \n" +
-            "DATE_SUB(NOW(),INTERVAL 1 MINUTE) < b.sample_time \n" +
-            "AND \n" +
-            "b.sample_data BETWEEN 18 AND 22;";
+    private String AVG_SQL = "SELECT AVG(a.sample_data) AS avg " +
+            "FROM sample a " +
+            "WHERE DATE_SUB(NOW(),INTERVAL 1 MINUTE) <= a.sample_time;";
+
+    private String WARNING_SQL = "SELECT COUNT(DISTINCT b.sample_time) AS num " +
+            "FROM sample b " +
+            "WHERE DATE_SUB(NOW(),INTERVAL 1 MINUTE) <= b.sample_time " +
+            "AND b.sample_data BETWEEN 18 AND 22";
 
     public void setConn(Connection conn){
         this.conn = conn;
@@ -30,26 +32,28 @@ public class MinsRunnable implements Runnable{
                 Statement stmt = conn.createStatement();
 
                 // 执行SQL
-                ResultSet resultSet = stmt.executeQuery(sql);
-
-                if(resultSet.next()){
+                ResultSet avg = stmt.executeQuery(AVG_SQL);
+                if(avg.next()){
                     // 获取平均温度
                     Date date = new Date();
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                     String d = sdf.format(date);
 
                     System.out.println("\033[1;" + 34 + "m" + "[1分钟内平均温度]："
-                            + resultSet.getDouble("avg") + " ℃，当前时间：" + d + "\033[0m ");
-
-                    // 是否报警
-                    if(resultSet.getInt("num") == 0){
-                        // 输出彩色字符 白色30 红色31 绿色32 黄色33 蓝色34 紫红色35 青蓝色36
-                        System.out.println("\033[1;" + 31 + "m" + "===高温警报！！！已经连续1分钟超出阈值[18℃, 22℃]===" + "\033[0m ");
-                    }
+                            + avg.getDouble("avg") + " ℃，当前时间：" + d + "\033[0m ");
+                    avg.close(); // 释放资源
                 }
 
-                stmt.clearBatch();
-                stmt.close();
+                ResultSet warn = stmt.executeQuery(WARNING_SQL);
+                if(warn.next()){
+                    // 是否报警
+                    if(warn.getInt("num") == 0){
+                        // 输出彩色字符 白色30 红色31 绿色32 黄色33 蓝色34 紫红色35 青蓝色36
+                        System.out.println("\033[1;" + 31 + "m" + "===温度警报！！！已经连续1分钟超出阈值[18℃, 22℃]===" + "\033[0m ");
+                    }
+                    warn.close();
+                }
+
             } catch (Exception e){
                 e.printStackTrace();
             }

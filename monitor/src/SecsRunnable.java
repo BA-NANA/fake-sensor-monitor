@@ -4,6 +4,10 @@ import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+/**
+ * 线程 - 每10秒打印一次温度
+ * @author https://github.com/BA-NANA
+ */
 public class SecsRunnable implements Runnable{
 
     private Connection conn;

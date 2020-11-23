@@ -3,6 +3,10 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
 
+/**
+ * 模拟温度传感器
+ * @author https://github.com/BA-NANA
+ */
 public class main {
     public static void main(String[] args) throws SQLException, InterruptedException {
 
@@ -18,7 +22,7 @@ public class main {
         // 指定数据库信息
         String url = "jdbc:mysql://localhost:3306/test?useSSL=false&serverTimezone=UTC";
         String user = "root";
-        String pass = "tj20185584";
+        String pass = "password";
 
         // 创建连接对象
         Connection conn = null;
@@ -28,7 +32,7 @@ public class main {
             Class.forName(driver);
             conn = DriverManager.getConnection(url, user, pass);
             if(!conn.isClosed()){
-                System.out.println("\033[1;" + 33 + "m" + "张钊铭 20185584 的模拟传感器开始运行，欢迎访问我的blog 515code.com :)"
+                System.out.println("\033[1;" + 33 + "m" + "模拟传感器开始运行，欢迎访问我的blog 515code.com :)"
                         + "\033[0m \n");
             }
         } catch (Exception e){
@@ -41,7 +45,7 @@ public class main {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             String d = sdf.format(date);
 
-            int temp = new Random().nextInt(10) + 15; // 随机温度 20±5
+            int temp = new Random().nextInt(2) + 23; // 随机温度 20±5
 
             // 插入语句
             String sql = "insert into sample values(\'" + d + "\'," + temp + ")";
